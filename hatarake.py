@@ -54,11 +54,17 @@ class Hatarake(rumps.App):
     def refresh(self, sender):
         now = datetime.datetime.now(pytz.utc).replace(microsecond=0)
         delta = now - self.when
-        self.label.title = u'Last pomodoro [{0}] was {1} ago'.format(self.zname, delta)
-        self.title = u'働け {0}'.format(delta)
 
         if delta.total_seconds() % self.delay == 0:
             self.alert(u'[{0}] was {1} ago', self.zname, delta)
+
+        self.label.title = u'Last pomodoro [{0}] was {1} ago'.format(self.zname, delta)
+
+        # If delta is more than a day ago, show the infinity symbol to avoid
+        # having a super long label in our menubar
+        if delta.days:
+            delta = u'∞'
+        self.title = u'働 {0}'.format(delta)
 
     @rumps.clicked("Reload")
     def reload(self, sender):
