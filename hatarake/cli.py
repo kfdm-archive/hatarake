@@ -8,6 +8,7 @@ import rumps
 import hatarake.shim
 import hatarake.report
 import hatarake.models
+import hatarake.config
 
 from gntp.config import GrowlNotifier
 
@@ -19,6 +20,14 @@ POMODORO_DB = os.path.join(
     'Application Support',
     'Pomodoro',
     'Pomodoro.sql'
+)
+
+CONFIG_PATH = os.path.join(
+    os.path.expanduser("~"),
+    'Library',
+    'Application Support',
+    'Hatarake',
+    'config.ini'
 )
 
 POMODORO_SQL = 'SELECT cast(ZWHEN as integer), ZNAME FROM ZPOMODOROS ORDER BY ZWHEN DESC LIMIT 1'
@@ -33,6 +42,7 @@ class Hatarake(hatarake.shim.Shim):
         self.label = self.menu["Reload"]
         self.delay = GROWL_INTERVAL
         self.model = hatarake.models.Pomodoro(POMODORO_DB)
+        self.config = hatarake.config.Config(CONFIG_PATH)
 
         self.reload(None)
 
@@ -85,7 +95,7 @@ class Hatarake(hatarake.shim.Shim):
 
     @rumps.clicked("Report")
     def renderreport(self, sender):
-        hatarake.report.render_report(self.model)
+        hatarake.report.render_report(self.model, self.config)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.WARNING)
