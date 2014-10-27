@@ -6,6 +6,7 @@ import os
 import pytz
 import rumps
 import hatarake.shim
+import hatarake.report
 import hatarake.models
 
 from gntp.config import GrowlNotifier
@@ -86,7 +87,7 @@ class Hatarake(hatarake.shim.Shim):
 
     @rumps.clicked("Report")
     def renderreport(self, sender):
-        pass
+        hatarake.report.render_report(self.model)
 
 if __name__ == "__main__":
     Hatarake().run()

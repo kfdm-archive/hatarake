@@ -20,3 +20,10 @@ class Pomodoro(object):
         return zname, datetime.datetime.fromtimestamp(
             zwhen + NSTIMEINTERVAL, pytz.utc
         ).replace(microsecond=0)
+
+    def query(self, sql, params):
+        with sqlite3.connect(self.path) as con:
+            cur = con.cursor()
+            cur.execute(sql, params)
+            for result in cur.fetchall():
+                yield result
