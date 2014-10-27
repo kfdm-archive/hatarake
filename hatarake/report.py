@@ -22,13 +22,19 @@ class PomodoroBucket(object):
         ) - NSTIMEINTERVAL
 
     @classmethod
-    def get(cls, database, start, minutes):
+    def get(cls, database, start, minutes, config):
         # Assuming start is midnight, add a day to get the end
         end = start + 24 * 60 * 60
         buckets = collections.defaultdict(int)
+        replacements = config.replacements()
+        logging.debug('Using %s replacements', replacements)
         buckets['Unknown'] = minutes
 
         for zpk, zwhen, zminutes, zname in database.query(REPORT_SQL, (start, end)):
+            for regex, replace in replacements.items():
+                if regex.match(zname):
+                    logger.debug('Replaced %s with %s', zname, replace)
+                    zname = replace
             buckets[zname] += zminutes
             buckets['Unknown'] -= zminutes
         return sorted(buckets.items(), key=lambda x: x[1], reverse=True)
@@ -44,7 +50,7 @@ def render_report(model, config):
 
     minutes = hours * 60
 
-    buckets = PomodoroBucket.get(model, start, minutes)
+    buckets = PomodoroBucket.get(model, start, minutes, config)
 
     print 'Breakdown for {0} hours'.format(hours)
     print '-' * 80

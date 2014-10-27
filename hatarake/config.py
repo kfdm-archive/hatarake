@@ -1,5 +1,8 @@
 import ConfigParser
 import logging
+import re
+import codecs
+
 logger = logging.getLogger(__name__)
 
 
@@ -12,8 +15,7 @@ class Config():
         self.path = path
         logger.debug('Loaded config from %s', self.path)
         self.config = ConfigParser.ConfigParser()
-        self.config.readfp(open(self.path))
-        print self.config
+        self.config.readfp(codecs.open(self.path, 'r', 'utf8'))
 
     def hours(self, ts, default):
         date = ts.date().isoformat()
@@ -35,3 +37,16 @@ class Config():
                     return self.config.getint('days', 'Weekend')
 
         return default
+
+    def getlist(self, key):
+        for option in self.config.options(key):
+            config = self.config.get(key, option)
+            for item in config.strip().split('\n'):
+                yield option, item.strip()
+
+    def replacements(self):
+        replacements = {}
+        if self.config.has_section('replacements'):
+            for option, expression in self.getlist('replacements'):
+                replacements[re.compile(expression, re.X)] = option
+        return replacements
