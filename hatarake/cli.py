@@ -6,6 +6,7 @@ import sqlite3
 
 import pytz
 import rumps
+import hatarake.shim
 
 from gntp.config import GrowlNotifier
 
@@ -26,7 +27,7 @@ POMODORO_SQL = 'SELECT cast(ZWHEN as integer), ZNAME FROM ZPOMODOROS ORDER BY ZW
 GROWL_INTERVAL = 30
 
 
-class Hatarake(rumps.App):
+class Hatarake(hatarake.shim.Shim):
     def __init__(self):
         super(Hatarake, self).__init__("Hatarake")
         self.menu = ["Reload", "Debug", "Report"]
