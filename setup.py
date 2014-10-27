@@ -1,6 +1,6 @@
 from setuptools import setup
 
-APP = ['hatarake/cli.py']
+APP = ['hatarake/app.py']
 DATA_FILES = []
 OPTIONS = {
     'argv_emulation': True,

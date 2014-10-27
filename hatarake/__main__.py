@@ -1,5 +1,5 @@
 import logging
-from hatarake.cli import Hatarake
+from hatarake.app import Hatarake
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
