@@ -2,11 +2,11 @@
 import datetime
 import logging
 import os
-import sqlite3
 
 import pytz
 import rumps
 import hatarake.shim
+import hatarake.models
 
 from gntp.config import GrowlNotifier
 
@@ -33,6 +33,7 @@ class Hatarake(hatarake.shim.Shim):
         self.menu = ["Reload", "Debug", "Report"]
         self.label = self.menu["Reload"]
         self.delay = GROWL_INTERVAL
+        self.model = hatarake.models.Pomodoro(POMODORO_DB)
 
         self.reload(None)
 
@@ -69,16 +70,7 @@ class Hatarake(hatarake.shim.Shim):
 
     @rumps.clicked("Reload")
     def reload(self, sender):
-        logging.info('Reloading db')
-        with sqlite3.connect(POMODORO_DB) as con:
-            cur = con.cursor()
-            cur.execute(POMODORO_SQL)
-            zwhen, zname = cur.fetchone()
-
-        self.zname = zname
-        self.when = datetime.datetime.fromtimestamp(
-            zwhen + NSTIMEINTERVAL, pytz.utc
-        ).replace(microsecond=0)
+        self.zname, self.when = self.model.most_recent()
 
     @rumps.clicked("Debug")
     def toggledebug(self, sender):
