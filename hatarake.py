@@ -29,7 +29,7 @@ GROWL_INTERVAL = 30
 class Hatarake(rumps.App):
     def __init__(self):
         super(Hatarake, self).__init__("Hatarake")
-        self.menu = ["Reload", "Debug"]
+        self.menu = ["Reload", "Debug", "Report"]
         self.label = self.menu["Reload"]
         self.delay = GROWL_INTERVAL
 
@@ -90,6 +90,10 @@ class Hatarake(rumps.App):
             logging.info('Setting debugging to WARNING and delay to %d', self.delay)
             logging.getLogger().setLevel(logging.WARNING)
             self.delay = GROWL_INTERVAL
+
+    @rumps.clicked("Report")
+    def renderreport(self, sender):
+        pass
 
 if __name__ == "__main__":
     Hatarake().run()
