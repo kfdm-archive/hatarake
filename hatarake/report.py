@@ -32,7 +32,7 @@ class PomodoroBucket(object):
 
         for zpk, zwhen, zminutes, zname in database.query(REPORT_SQL, (start, end)):
             for regex, replace in replacements.items():
-                if regex.match(zname):
+                if regex.search(zname.strip()):
                     logger.debug('Replaced %s with %s', zname, replace)
                     zname = replace
             buckets[zname] += zminutes
