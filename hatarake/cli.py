@@ -11,8 +11,6 @@ import hatarake.models
 
 from gntp.config import GrowlNotifier
 
-logging.basicConfig(level=logging.WARNING)
-
 NSTIMEINTERVAL = 978307200
 
 POMODORO_DB = os.path.join(
@@ -90,4 +88,5 @@ class Hatarake(hatarake.shim.Shim):
         hatarake.report.render_report(self.model)
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.WARNING)
     Hatarake().run()
