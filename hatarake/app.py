@@ -12,8 +12,6 @@ import hatarake.config
 
 from gntp.config import GrowlNotifier
 
-NSTIMEINTERVAL = 978307200
-
 POMODORO_DB = os.path.join(
     os.path.expanduser("~"),
     'Library',
@@ -29,8 +27,6 @@ CONFIG_PATH = os.path.join(
     'Hatarake',
     'config.ini'
 )
-
-POMODORO_SQL = 'SELECT cast(ZWHEN as integer), ZNAME FROM ZPOMODOROS ORDER BY ZWHEN DESC LIMIT 1'
 
 GROWL_INTERVAL = 30
 

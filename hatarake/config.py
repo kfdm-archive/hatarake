@@ -33,8 +33,8 @@ class Config():
                 if self.config.has_option('days', 'Weekdays'):
                     return self.config.getint('days', 'Weekdays')
             if dayoftheweek in WEEKENDS:
-                if self.config.has_option('days', 'Weekend'):
-                    return self.config.getint('days', 'Weekend')
+                if self.config.has_option('days', 'Weekends'):
+                    return self.config.getint('days', 'Weekends')
 
         return default
 
