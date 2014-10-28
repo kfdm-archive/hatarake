@@ -27,7 +27,6 @@ class PomodoroBucket(object):
         end = start + 24 * 60 * 60
         buckets = collections.defaultdict(int)
         replacements = config.replacements()
-        logging.debug('Using %s replacements', replacements)
         buckets['Unknown'] = minutes
 
         for zpk, zwhen, zminutes, zname in database.query(REPORT_SQL, (start, end)):
