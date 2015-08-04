@@ -40,4 +40,5 @@ def submit(start, duration, title):
 def report():
     model = Pomodoro(POMODORO_DB)
     config = Config(CONFIG_PATH)
-    render_report(model, config)
+    timezone = config.config.get('report', 'timezone', 'UTC')
+    render_report(model, config, timezone)

@@ -7,7 +7,6 @@ from hatarake.models import NSTIMEINTERVAL
 
 REPORT_FORMAT = u'{hours:0>2}:{minutes:0>2} {percent:>6.2%} {pomodoro}'
 REPORT_SQL = 'SELECT Z_PK, cast(ZWHEN as integer), ZDURATIONMINUTES, ZNAME FROM ZPOMODOROS WHERE ZWHEN > ? AND ZWHEN < ? ORDER BY ZWHEN DESC'
-TIME_ZONE = 'America/Los_Angeles'
 
 
 logger = logging.getLogger(__name__)
@@ -41,8 +40,9 @@ class PomodoroBucket(object):
 
 def render_report(model, config):
     # Get midnight today (in the current timezone) as our query point
-    ts = datetime.datetime.now(pytz.timezone(TIME_ZONE))
+    ts = datetime.datetime.now(pytz.timezone(timezone))
     hours = config.hours(ts, 9)
+    logger.debug('Using %s for timezone', timezone)
     logger.debug('Using %s hours for report', hours)
 
     start = PomodoroBucket.midnight(ts)
