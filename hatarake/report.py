@@ -27,6 +27,7 @@ class PomodoroBucket(object):
         buckets = collections.defaultdict(int)
         replacements = config.replacements()
         buckets['Unknown'] = minutes
+        real_time = 0
 
         for zpk, zwhen, zminutes, zname in database.query(REPORT_SQL, (start, end)):
             for regex, replace in replacements.items():
@@ -35,10 +36,18 @@ class PomodoroBucket(object):
                     zname = replace
             buckets[zname] += zminutes
             buckets['Unknown'] -= zminutes
-        return sorted(buckets.items(), key=lambda x: x[1], reverse=True)
+            real_time += zminutes
+
+        real_time_hours = real_time / 60 + 1
+
+        if buckets['Unknown'] < 0:
+            buckets['Unknown'] = real_time_hours * 60 - minutes + buckets['Unknown']
+            print buckets['Unknown'], real_time, minutes
+
+        return sorted(buckets.items(), key=lambda x: x[1], reverse=True), real_time
 
 
-def render_report(model, config):
+def render_report(model, config, timezone):
     # Get midnight today (in the current timezone) as our query point
     ts = datetime.datetime.now(pytz.timezone(timezone))
     hours = config.hours(ts, 9)
@@ -49,10 +58,15 @@ def render_report(model, config):
 
     minutes = hours * 60
 
-    buckets = PomodoroBucket.get(model, start, minutes, config)
+    buckets, real_time = PomodoroBucket.get(model, start, minutes, config)
+
+    if real_time > minutes:
+        minutes = real_time
+        hours = real_time / 60 + 1
 
     print 'Breakdown for {0} hours'.format(hours)
     print '-' * 80
+
     for key, value in buckets:
         print REPORT_FORMAT.format(
             pomodoro=key,

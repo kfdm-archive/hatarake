@@ -46,7 +46,7 @@ class Hatarake(hatarake.shim.Shim):
         )
         self.notifier.register()
 
-    def alert(self, fmt, *args):
+    def alert(self, fmt, *args, **kwargs):
         self.notifier.notify(
             noteType='Nag',
             title=u"働け".encode('utf8', 'replace'),
