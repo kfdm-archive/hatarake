@@ -18,7 +18,13 @@ setup(
     data_files=DATA_FILES,
     options={'py2app': OPTIONS},
     setup_requires=['py2app'],
-    install_requires=['rumps', 'gntp', 'jinja2'],
+    install_requires=[
+        'click',
+        'gntp',
+        'jinja2',
+        'requests',
+        'rumps',
+    ],
     entry_points={
         'console_scripts': [
             'hatarake = hatarake.cli:main'
