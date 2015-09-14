@@ -4,7 +4,7 @@ import click
 import requests
 
 from hatarake import USER_AGENT
-from hatarake.app import CONFIG_PATH, POMODORO_DB
+from hatarake.app import CONFIG_PATH
 from hatarake.config import Config
 from hatarake.models import Pomodoro
 from hatarake.report import render_report
@@ -42,7 +42,7 @@ def submit(start, duration, title):
 
 @main.command()
 def report():
-    model = Pomodoro(POMODORO_DB)
+    model = Pomodoro()
     config = Config(CONFIG_PATH)
     timezone = config.config.get('report', 'timezone', 'UTC')
     render_report(model, config, timezone)

@@ -1,4 +1,5 @@
 import datetime
+import os
 import sqlite3
 
 import pytz
@@ -6,9 +7,17 @@ import pytz
 NSTIMEINTERVAL = 978307200
 POMODORO_SQL = 'SELECT cast(ZWHEN as integer), ZNAME FROM ZPOMODOROS ORDER BY ZWHEN DESC LIMIT 1'
 
+POMODORO_DB = os.path.join(
+    os.path.expanduser("~"),
+    'Library',
+    'Application Support',
+    'Pomodoro',
+    'Pomodoro.sql'
+)
+
 
 class Pomodoro(object):
-    def __init__(self, path):
+    def __init__(self, path=POMODORO_DB):
         self.path = path
 
     def most_recent(self):
