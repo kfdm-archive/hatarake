@@ -1,8 +1,9 @@
 import logging
-import json
+
 import click
 import requests
 
+from hatarake import USER_AGENT
 from hatarake.app import CONFIG_PATH, POMODORO_DB
 from hatarake.config import Config
 from hatarake.models import Pomodoro
@@ -26,7 +27,10 @@ def submit(start, duration, title):
 
     response = requests.post(
         api,
-        headers={'Authorization': 'Token %s' % token},
+        headers={
+            'Authorization': 'Token %s' % token,
+            'User-Agent': USER_AGENT,
+        },
         data={
             'created': start,
             'duration': duration,
