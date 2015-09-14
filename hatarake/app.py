@@ -4,21 +4,15 @@ import logging
 import os
 
 import pytz
+import requests
 import rumps
-import hatarake.shim
-import hatarake.report
-import hatarake.models
-import hatarake.config
-
 from gntp.config import GrowlNotifier
 
-POMODORO_DB = os.path.join(
-    os.path.expanduser("~"),
-    'Library',
-    'Application Support',
-    'Pomodoro',
-    'Pomodoro.sql'
-)
+from icalendar import Calendar
+
+from hatarake import USER_AGENT
+import hatarake.config
+import hatarake.shim
 
 CONFIG_PATH = os.path.join(
     os.path.expanduser("~"),
@@ -34,7 +28,7 @@ GROWL_INTERVAL = 30
 class Hatarake(hatarake.shim.Shim):
     def __init__(self):
         super(Hatarake, self).__init__("Hatarake")
-        self.menu = ["Reload", "Debug", "Report"]
+        self.menu = ["Reload", "Debug"]
         self.label = self.menu["Reload"]
         self.delay = GROWL_INTERVAL
 
@@ -53,6 +47,7 @@ class Hatarake(hatarake.shim.Shim):
             description=fmt.format(*args).encode('utf8', 'replace'),
             sticky=True,
             identifier=__file__,
+            **kwargs
         )
 
     @rumps.timer(1)
@@ -71,11 +66,24 @@ class Hatarake(hatarake.shim.Shim):
             delta = u'∞'
         self.title = u'働 {0}'.format(delta)
 
+    def get_latest(self, calendar_url):
+        result = requests.get(calendar_url, headers={'User-Agent': USER_AGENT})
+        cal = Calendar.from_ical(result.text)
+        recent = None
+        for entry in cal.subcomponents:
+            if recent is None:
+                recent = entry
+                continue
+            if 'DTEND' not in entry:
+                continue
+            if entry['DTEND'].dt > recent['DTEND'].dt:
+                recent = entry
+        return recent['SUMMARY'], recent['DTEND'].dt
+
     @rumps.clicked("Reload")
     def reload(self, sender):
-        self.model = hatarake.models.Pomodoro(POMODORO_DB)
         self.config = hatarake.config.Config(CONFIG_PATH)
-        self.zname, self.when = self.model.most_recent()
+        self.zname, self.when = self.get_latest(self.config.config.get('feed', 'nag'))
 
     @rumps.clicked("Debug")
     def toggledebug(self, sender):
@@ -89,9 +97,6 @@ class Hatarake(hatarake.shim.Shim):
             logging.getLogger().setLevel(logging.WARNING)
             self.delay = GROWL_INTERVAL
 
-    @rumps.clicked("Report")
-    def renderreport(self, sender):
-        hatarake.report.render_report(self.model, self.config)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.WARNING)

@@ -1,4 +1,5 @@
 from setuptools import setup
+from hatarake import __version__
 
 APP = ['hatarake/app.py']
 DATA_FILES = []
@@ -7,13 +8,13 @@ OPTIONS = {
     'plist': {
         'LSUIElement': True,
     },
-    'packages': ['rumps', 'gntp', 'jinja2'],
+    'packages': ['rumps', 'gntp', 'jinja2', 'icalendar'],
 }
 
 setup(
     name='Hatarake',
     author='Paul Traylor',
-    version='0.1.0',
+    version=__version__,
     app=APP,
     data_files=DATA_FILES,
     options={'py2app': OPTIONS},
@@ -21,6 +22,7 @@ setup(
     install_requires=[
         'click',
         'gntp',
+        'icalendar'
         'jinja2',
         'requests',
         'rumps',
