@@ -22,7 +22,7 @@ setup(
     install_requires=[
         'click',
         'gntp',
-        'icalendar'
+        'icalendar',
         'jinja2',
         'requests',
         'rumps',
