@@ -8,7 +8,13 @@ OPTIONS = {
     'plist': {
         'LSUIElement': True,
     },
-    'packages': ['rumps', 'gntp', 'jinja2', 'icalendar'],
+    'packages': [
+        'certifi'
+        'gntp',
+        'icalendar',
+        'jinja2',
+        'rumps',
+    ],
 }
 
 setup(
@@ -20,6 +26,7 @@ setup(
     options={'py2app': OPTIONS},
     setup_requires=['py2app'],
     install_requires=[
+        'certifi',
         'click',
         'gntp',
         'icalendar',
