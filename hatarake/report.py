@@ -1,8 +1,10 @@
-import logging
 import collections
 import datetime
-import pytz
+import logging
 import time
+
+import pytz
+
 from hatarake.models import NSTIMEINTERVAL
 
 REPORT_FORMAT = u'{hours:0>2}:{minutes:0>2} {percent:>6.2%} {pomodoro}'
