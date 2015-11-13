@@ -24,6 +24,8 @@ CONFIG_PATH = os.path.join(
 
 GROWL_INTERVAL = 30
 
+logger = logging.getLogger(__name__)
+
 
 class Hatarake(hatarake.shim.Shim):
     def __init__(self):
@@ -51,9 +53,11 @@ class Hatarake(hatarake.shim.Shim):
         )
 
     @rumps.timer(1)
-    def refresh(self, sender):
+    def _update_clock(self, sender):
         now = datetime.datetime.now(pytz.utc).replace(microsecond=0)
         delta = now - self.when
+
+        logger.debug('Pomodoro %s %s, %s', self.title, self.when, now)
 
         if delta.total_seconds() % self.delay == 0:
             self.alert(u'[{0}] was {1} ago', self.zname, delta)
@@ -65,6 +69,10 @@ class Hatarake(hatarake.shim.Shim):
         if delta.days:
             delta = u'∞'
         self.title = u'働 {0}'.format(delta)
+
+    @rumps.timer(60)
+    def _update_calendar(self, sender):
+        self.reload(None)
 
     def get_latest(self, calendar_url):
         result = requests.get(calendar_url, headers={'User-Agent': USER_AGENT})
