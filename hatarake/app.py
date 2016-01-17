@@ -16,23 +16,16 @@ import hatarake.shim
 logger = logging.getLogger(__name__)
 
 
-class Hatarake(hatarake.shim.Shim):
+class Growler(object):
     def __init__(self):
-        super(Hatarake, self).__init__("Hatarake")
-        self.menu = ["Reload", "Debug", "Report Issue"]
-        self.label = self.menu["Reload"]
-        self.delay = GROWL_INTERVAL
-
-        self.reload(None)
-
-        self.notifier = GrowlNotifier(
+        self.growl = gntp.config.GrowlNotifier(
             applicationName='Hatarake',
-            notifications=['Nag'],
+            notifications=['Nag']
         )
-        self.notifier.register()
+        self.growl.register()
 
     def alert(self, fmt, *args, **kwargs):
-        self.notifier.notify(
+        self.growl.notify(
             noteType='Nag',
             title=u"働け".encode('utf8', 'replace'),
             description=fmt.format(*args).encode('utf8', 'replace'),
@@ -41,7 +34,18 @@ class Hatarake(hatarake.shim.Shim):
             **kwargs
         )
 
+
+class Hatarake(hatarake.shim.Shim):
+    def __init__(self):
+        super(Hatarake, self).__init__("Hatarake")
+        self.menu = ["Reload", "Debug", "Report Issue"]
+        self.label = self.menu["Reload"]
         self.delay = hatarake.GROWL_INTERVAL
+
+        self.reload(None)
+
+        self.notifier = Growler()
+
     @rumps.timer(1)
     def _update_clock(self, sender):
         now = datetime.datetime.now(pytz.utc).replace(microsecond=0)
@@ -50,7 +54,7 @@ class Hatarake(hatarake.shim.Shim):
         logger.debug('Pomodoro %s %s, %s', self.title, self.when, now)
 
         if delta.total_seconds() % self.delay == 0:
-            self.alert(u'[{0}] was {1} ago', self.zname, delta)
+            self.notifier.alert(u'[{0}] was {1} ago', self.zname, delta)
 
         self.label.title = u'Last pomodoro [{0}] was {1} ago'.format(self.zname, delta)
 
