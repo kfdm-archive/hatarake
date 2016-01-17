@@ -66,13 +66,15 @@ class Hatarake(hatarake.shim.Shim):
         self.title = u'働 {0}'.format(delta)
 
     @rumps.timer(300)
-    def _update_calendar(self, sender):
-        self.reload(None)
+    @rumps.clicked(MENU_RELOAD)
+    def reload(self, sender):
+        config = hatarake.config.Config(hatarake.CONFIG_PATH)
+        calendar_url = config.config.get('feed', 'nag')
 
-    def get_latest(self, calendar_url):
         result = requests.get(calendar_url, headers={'User-Agent': hatarake.USER_AGENT})
         cal = Calendar.from_ical(result.text)
         recent = None
+
         for entry in cal.subcomponents:
             if recent is None:
                 recent = entry
@@ -81,12 +83,9 @@ class Hatarake(hatarake.shim.Shim):
                 continue
             if entry['DTEND'].dt > recent['DTEND'].dt:
                 recent = entry
-        return recent['SUMMARY'], recent['DTEND'].dt
 
-    @rumps.clicked(MENU_RELOAD)
-    def reload(self, sender):
-        self.config = hatarake.config.Config(hatarake.CONFIG_PATH)
-        self.zname, self.when = self.get_latest(self.config.config.get('feed', 'nag'))
+        self.zname = recent['SUMMARY']
+        self.when = recent['DTEND'].dt
 
     @rumps.clicked(MENU_DEBUG)
     def toggledebug(self, sender):
