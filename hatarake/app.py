@@ -3,16 +3,16 @@ import datetime
 import logging
 import os
 
+import webbrowser
 import pytz
 import requests
 import rumps
 from gntp.config import GrowlNotifier
-
 from icalendar import Calendar
 
-from hatarake import USER_AGENT
 import hatarake.config
 import hatarake.shim
+import hatarake
 
 CONFIG_PATH = os.path.join(
     os.path.expanduser("~"),
@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 class Hatarake(hatarake.shim.Shim):
     def __init__(self):
         super(Hatarake, self).__init__("Hatarake")
-        self.menu = ["Reload", "Debug"]
+        self.menu = ["Reload", "Debug", "Report Issue"]
         self.label = self.menu["Reload"]
         self.delay = GROWL_INTERVAL
 
@@ -70,12 +70,12 @@ class Hatarake(hatarake.shim.Shim):
             delta = u'∞'
         self.title = u'働 {0}'.format(delta)
 
-    @rumps.timer(60)
+    @rumps.timer(300)
     def _update_calendar(self, sender):
         self.reload(None)
 
     def get_latest(self, calendar_url):
-        result = requests.get(calendar_url, headers={'User-Agent': USER_AGENT})
+        result = requests.get(calendar_url, headers={'User-Agent': hatarake.USER_AGENT})
         cal = Calendar.from_ical(result.text)
         recent = None
         for entry in cal.subcomponents:
@@ -105,6 +105,9 @@ class Hatarake(hatarake.shim.Shim):
             logging.getLogger().setLevel(logging.WARNING)
             self.delay = GROWL_INTERVAL
 
+    @rumps.clicked("Report Issue")
+    def issues(self, sender):
+        webbrowser.open(hatarake.ISSUES_LINK)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.WARNING)
