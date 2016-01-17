@@ -3,11 +3,10 @@ import logging
 import click
 import requests
 
-from hatarake import USER_AGENT
-from hatarake.app import CONFIG_PATH
 from hatarake.config import Config
 from hatarake.models import Pomodoro
 from hatarake.report import render_report
+import hatarake
 
 
 @click.group()
@@ -21,7 +20,7 @@ def main():
 @click.argument('duration', type=int)
 @click.argument('title')
 def submit(start, duration, title):
-    config = Config(CONFIG_PATH)
+    config = Config(hatarake.CONFIG_PATH)
     api = config.config.get('server', 'api')
     token = config.config.get('server', 'token')
 
@@ -29,7 +28,7 @@ def submit(start, duration, title):
         api,
         headers={
             'Authorization': 'Token %s' % token,
-            'User-Agent': USER_AGENT,
+            'User-Agent': hatarake.USER_AGENT,
         },
         data={
             'created': start,
@@ -46,7 +45,7 @@ def submit(start, duration, title):
 @click.option('--api_token', envvar='HATARAKE_API_TOKEN')
 @click.argument('title')
 def append(duration, title, api_server=None, api_token=None):
-    config = Config(CONFIG_PATH)
+    config = Config(hatarake.CONFIG_PATH)
     api = api_server if api_server else config.config.get('server', 'api')
     token = api_token if api_token else config.config.get('server', 'token')
 
@@ -60,7 +59,7 @@ def append(duration, title, api_server=None, api_token=None):
         api + 'append/',
         headers={
             'Authorization': 'Token %s' % token,
-            'User-Agent': USER_AGENT,
+            'User-Agent': hatarake.USER_AGENT,
         },
         data={
             'category': tags,
@@ -73,6 +72,6 @@ def append(duration, title, api_server=None, api_token=None):
 @main.command()
 def report():
     model = Pomodoro()
-    config = Config(CONFIG_PATH)
+    config = Config(hatarake.CONFIG_PATH)
     timezone = config.config.get('report', 'timezone', 'UTC')
     render_report(model, config, timezone)

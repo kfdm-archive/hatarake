@@ -1,28 +1,17 @@
 # -*- coding: utf-8 -*-
 import datetime
 import logging
-import os
-
 import webbrowser
+
+import gntp.config
 import pytz
 import requests
 import rumps
-from gntp.config import GrowlNotifier
 from icalendar import Calendar
 
+import hatarake
 import hatarake.config
 import hatarake.shim
-import hatarake
-
-CONFIG_PATH = os.path.join(
-    os.path.expanduser("~"),
-    'Library',
-    'Application Support',
-    'Hatarake',
-    'config.ini'
-)
-
-GROWL_INTERVAL = 30
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +41,7 @@ class Hatarake(hatarake.shim.Shim):
             **kwargs
         )
 
+        self.delay = hatarake.GROWL_INTERVAL
     @rumps.timer(1)
     def _update_clock(self, sender):
         now = datetime.datetime.now(pytz.utc).replace(microsecond=0)
@@ -90,7 +80,7 @@ class Hatarake(hatarake.shim.Shim):
 
     @rumps.clicked("Reload")
     def reload(self, sender):
-        self.config = hatarake.config.Config(CONFIG_PATH)
+        self.config = hatarake.config.Config(hatarake.CONFIG_PATH)
         self.zname, self.when = self.get_latest(self.config.config.get('feed', 'nag'))
 
     @rumps.clicked("Debug")
@@ -103,7 +93,7 @@ class Hatarake(hatarake.shim.Shim):
         else:
             logging.info('Setting debugging to WARNING and delay to %d', self.delay)
             logging.getLogger().setLevel(logging.WARNING)
-            self.delay = GROWL_INTERVAL
+            self.delay = hatarake.GROWL_INTERVAL
 
     @rumps.clicked("Report Issue")
     def issues(self, sender):
