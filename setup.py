@@ -9,7 +9,7 @@ OPTIONS = {
         'LSUIElement': True,
     },
     'packages': [
-        'certifi'
+        'certifi',
         'gntp',
         'icalendar',
         'jinja2',
