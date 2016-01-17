@@ -41,10 +41,7 @@ class Growler(object):
 
 class Hatarake(hatarake.shim.Shim):
     def __init__(self):
-        super(Hatarake, self).__init__(
-            "Hatarake",
-            menu=[MENU_RELOAD, MENU_DEBUG, MENU_ISSUE]
-        )
+        super(Hatarake, self).__init__("Hatarake", "Hatarake")
 
         self.delay = hatarake.GROWL_INTERVAL
         self.notifier = Growler()

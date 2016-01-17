@@ -14,16 +14,25 @@ class Shim(rumps.App):
     '''
     Custom run method to get around notification center errors in a virtual env
     '''
-    def run(self):
+    def run(self, **options):
+        """Performs various setup tasks including creating the underlying Objective-C application, starting the timers,
+        and registering callback functions for click events. Then starts the application run loop.
+        .. versionchanged:: 0.2.1
+            Accepts `debug` keyword argument.
+        :param debug: determines if application should log information useful for debugging. Same effect as calling
+                      :func:`rumps.debug_mode`.
         """
-        Perform various setup tasks then start application run loop.
-        """
+        dont_change = object()
+        debug = options.get('debug', dont_change)
+        if debug is not dont_change:
+            debug_mode(debug)
+
         nsapplication = AppKit.NSApplication.sharedApplication()
         nsapplication.activateIgnoringOtherApps_(True)  # NSAlerts in front
         self._nsapp = rumps.NSApp.alloc().init()
         self._nsapp._app = self.__dict__  # allow for dynamic modification based on this App instance
-        self._nsapp.initializeStatusBar()
         nsapplication.setDelegate_(self._nsapp)
+
         try:
             Foundation.NSUserNotificationCenter.defaultUserNotificationCenter().setDelegate_(self._nsapp)
         except AttributeError:
@@ -37,5 +46,6 @@ class Shim(rumps.App):
             b(self)  # we waited on registering clicks so we could pass self to access _menu attribute
         del t, b
 
+        self._nsapp.initializeStatusBar()
+
         PyObjCTools.AppHelper.runEventLoop()
-        sys.exit(0)
