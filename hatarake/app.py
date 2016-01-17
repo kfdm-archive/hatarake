@@ -15,6 +15,10 @@ import hatarake.shim
 
 logger = logging.getLogger(__name__)
 
+MENU_RELOAD = 'Reload'
+MENU_DEBUG = 'Debug'
+MENU_ISSUE = 'Report Issue'
+
 
 class Growler(object):
     def __init__(self):
@@ -38,12 +42,9 @@ class Growler(object):
 class Hatarake(hatarake.shim.Shim):
     def __init__(self):
         super(Hatarake, self).__init__("Hatarake")
-        self.menu = ["Reload", "Debug", "Report Issue"]
-        self.label = self.menu["Reload"]
+        self.menu = [MENU_RELOAD, MENU_DEBUG, MENU_ISSUE]
         self.delay = hatarake.GROWL_INTERVAL
-
         self.reload(None)
-
         self.notifier = Growler()
 
     @rumps.timer(1)
@@ -56,7 +57,7 @@ class Hatarake(hatarake.shim.Shim):
         if delta.total_seconds() % self.delay == 0:
             self.notifier.alert(u'[{0}] was {1} ago', self.zname, delta)
 
-        self.label.title = u'Last pomodoro [{0}] was {1} ago'.format(self.zname, delta)
+        self.menu[MENU_RELOAD].title = u'Last pomodoro [{0}] was {1} ago'.format(self.zname, delta)
 
         # If delta is more than a day ago, show the infinity symbol to avoid
         # having a super long label in our menubar
@@ -82,12 +83,12 @@ class Hatarake(hatarake.shim.Shim):
                 recent = entry
         return recent['SUMMARY'], recent['DTEND'].dt
 
-    @rumps.clicked("Reload")
+    @rumps.clicked(MENU_RELOAD)
     def reload(self, sender):
         self.config = hatarake.config.Config(hatarake.CONFIG_PATH)
         self.zname, self.when = self.get_latest(self.config.config.get('feed', 'nag'))
 
-    @rumps.clicked("Debug")
+    @rumps.clicked(MENU_DEBUG)
     def toggledebug(self, sender):
         sender.state = not sender.state
         if sender.state:
@@ -99,7 +100,7 @@ class Hatarake(hatarake.shim.Shim):
             logging.getLogger().setLevel(logging.WARNING)
             self.delay = hatarake.GROWL_INTERVAL
 
-    @rumps.clicked("Report Issue")
+    @rumps.clicked(MENU_ISSUE)
     def issues(self, sender):
         webbrowser.open(hatarake.ISSUES_LINK)
 
