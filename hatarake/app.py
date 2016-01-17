@@ -13,7 +13,7 @@ import hatarake
 import hatarake.config
 import hatarake.shim
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 MENU_RELOAD = 'Reload'
 MENU_DEBUG = 'Debug'
@@ -41,23 +41,32 @@ class Growler(object):
 
 class Hatarake(hatarake.shim.Shim):
     def __init__(self):
-        super(Hatarake, self).__init__("Hatarake")
-        self.menu = [MENU_RELOAD, MENU_DEBUG, MENU_ISSUE]
+        super(Hatarake, self).__init__(
+            "Hatarake",
+            menu=[MENU_RELOAD, MENU_DEBUG, MENU_ISSUE]
+        )
+
         self.delay = hatarake.GROWL_INTERVAL
-        self.reload(None)
         self.notifier = Growler()
+        self.last_pomodoro_name = None
+        self.zwhen = None
+
+        self.reload(None)
 
     @rumps.timer(1)
     def _update_clock(self, sender):
         now = datetime.datetime.now(pytz.utc).replace(microsecond=0)
-        delta = now - self.when
+        delta = now - self.last_pomodoro_timestamp
 
-        logger.debug('Pomodoro %s %s, %s', self.title, self.when, now)
+        LOGGER.debug('Pomodoro %s %s, %s', self.title, self.last_pomodoro_timestamp, now)
 
         if delta.total_seconds() % self.delay == 0:
-            self.notifier.alert(u'[{0}] was {1} ago', self.zname, delta)
+            self.notifier.alert(u'[{0}] was {1} ago', self.last_pomodoro_name, delta)
 
-        self.menu[MENU_RELOAD].title = u'Last pomodoro [{0}] was {1} ago'.format(self.zname, delta)
+        self.menu[MENU_RELOAD].title = u'Last pomodoro [{0}] was {1} ago'.format(
+            self.last_pomodoro_name,
+            delta
+        )
 
         # If delta is more than a day ago, show the infinity symbol to avoid
         # having a super long label in our menubar
@@ -84,8 +93,8 @@ class Hatarake(hatarake.shim.Shim):
             if entry['DTEND'].dt > recent['DTEND'].dt:
                 recent = entry
 
-        self.zname = recent['SUMMARY']
-        self.when = recent['DTEND'].dt
+        self.last_pomodoro_name = recent['SUMMARY']
+        self.last_pomodoro_timestamp = recent['DTEND'].dt
 
     @rumps.clicked(MENU_DEBUG)
     def toggledebug(self, sender):
