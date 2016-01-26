@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 import datetime
 import logging
+import platform
 import webbrowser
 
+import dateutil
 import gntp.config
 import pytz
 import requests
@@ -11,7 +13,6 @@ from icalendar import Calendar
 
 import hatarake
 import hatarake.config
-import platform
 import hatarake.shim
 
 LOGGER = logging.getLogger(__name__)
@@ -19,6 +20,7 @@ LOGGER = logging.getLogger(__name__)
 MENU_RELOAD = 'Reload'
 MENU_DEBUG = 'Debug'
 MENU_ISSUE = 'Issues'
+MENU_REMAINING = 'Remaining'
 
 PRIORITY_VERY_HIGH = datetime.timedelta(minutes=30)
 PRIORITY_HIGH = datetime.timedelta(minutes=15)
@@ -71,7 +73,8 @@ class Hatarake(hatarake.shim.Shim):
 
     @rumps.timer(1)
     def _update_clock(self, sender):
-        now = datetime.datetime.now(pytz.utc).replace(microsecond=0)
+        now = datetime.datetime.now(dateutil.tz.tzlocal()).replace(microsecond=0)
+        tomorrow = now.replace(hour=0, minute=0, second=0) + datetime.timedelta(days=1)
         delta = now - self.last_pomodoro_timestamp
 
         LOGGER.debug('Pomodoro %s %s, %s', self.title, self.last_pomodoro_timestamp, now)
@@ -89,6 +92,8 @@ class Hatarake(hatarake.shim.Shim):
         if delta.days:
             delta = u'∞'
         self.title = u'働 {0}'.format(delta)
+
+        self.menu[MENU_REMAINING].title = u'Time Remaining today: {}'.format(tomorrow - now)
 
     @rumps.timer(300)
     @rumps.clicked(MENU_RELOAD)
@@ -127,6 +132,10 @@ class Hatarake(hatarake.shim.Shim):
     @rumps.clicked(MENU_ISSUE)
     def issues(self, sender):
         webbrowser.open(hatarake.ISSUES_LINK)
+
+    @rumps.clicked(MENU_REMAINING)
+    def remaining(self, sender):
+        pass
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.WARNING)
