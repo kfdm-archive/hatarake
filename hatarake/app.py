@@ -17,13 +17,14 @@ import hatarake.shim
 
 LOGGER = logging.getLogger(__name__)
 
-MENU_RELOAD = 'Reload'
-MENU_DEBUG = 'Debug'
-MENU_ISSUE = 'Issues'
-MENU_REMAINING = 'Remaining'
+MENU_RELOAD = u'Reload'
+MENU_DEBUG = u'💻Debug'
+MENU_ISSUE = u'⚠️Issues'
+MENU_REMAINING = u'Remaining'
 
 PRIORITY_VERY_HIGH = datetime.timedelta(minutes=30)
 PRIORITY_HIGH = datetime.timedelta(minutes=15)
+PRIORITY_LOW = datetime.timedelta(minutes=5)
 
 
 class GrowlNotifier(gntp.config.GrowlNotifier):
@@ -45,6 +46,8 @@ class Growler(object):
         self.growl.register()
 
     def nag(self, title, delta, **kwargs):
+        if delta < PRIORITY_LOW:
+            return  # Skip low priority nags
         if delta > PRIORITY_VERY_HIGH:
             kwargs['priority'] = 2
         elif delta > PRIORITY_HIGH:
@@ -82,7 +85,7 @@ class Hatarake(hatarake.shim.Shim):
         if delta.total_seconds() % self.delay == 0:
             self.notifier.nag(self.last_pomodoro_name, delta)
 
-        self.menu[MENU_RELOAD].title = u'Last pomodoro [{0}] was {1} ago'.format(
+        self.menu[MENU_RELOAD].title = u'⏰Last pomodoro [{0}] was {1} ago'.format(
             self.last_pomodoro_name,
             delta
         )
@@ -91,9 +94,9 @@ class Hatarake(hatarake.shim.Shim):
         # having a super long label in our menubar
         if delta.days:
             delta = u'∞'
-        self.title = u'働 {0}'.format(delta)
+        self.title = u'⏳{0}'.format(delta)
 
-        self.menu[MENU_REMAINING].title = u'Time Remaining today: {}'.format(tomorrow - now)
+        self.menu[MENU_REMAINING].title = u'⌛️Time Remaining today: {}'.format(tomorrow - now)
 
     @rumps.timer(300)
     @rumps.clicked(MENU_RELOAD)
