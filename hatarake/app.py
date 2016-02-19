@@ -71,19 +71,24 @@ class Hatarake(hatarake.shim.Shim):
         self.notifier = Growler()
         self.last_pomodoro_name = None
         self.last_pomodoro_timestamp = None
+        self.disabled_until = self.now()
 
         self.reload(None)
 
+    def now(self):
+        return datetime.datetime.now(dateutil.tz.tzlocal())
+
     @rumps.timer(1)
     def _update_clock(self, sender):
-        now = datetime.datetime.now(dateutil.tz.tzlocal()).replace(microsecond=0)
+        now = self.now().replace(microsecond=0)
         tomorrow = now.replace(hour=0, minute=0, second=0) + datetime.timedelta(days=1)
         delta = now - self.last_pomodoro_timestamp
 
         LOGGER.debug('Pomodoro %s %s, %s', self.title, self.last_pomodoro_timestamp, now)
 
-        if delta.total_seconds() % self.delay == 0:
-            self.notifier.nag(self.last_pomodoro_name, delta)
+        if now > self.disabled_until:
+            if delta.total_seconds() % self.delay == 0:
+                self.notifier.nag(self.last_pomodoro_name, delta)
 
         self.menu[MENU_RELOAD].title = u'⏰Last pomodoro [{0}] was {1} ago'.format(
             self.last_pomodoro_name,
@@ -139,6 +144,26 @@ class Hatarake(hatarake.shim.Shim):
     @rumps.clicked(MENU_REMAINING)
     def remaining(self, sender):
         pass
+
+    @rumps.clicked('Pause for 15m')
+    def mute_1m(self, sender):
+        sender.state = not sender.state
+        if sender.state:
+            self.disabled_until = self.now() + datetime.timedelta(minutes=15)
+            LOGGER.debug('Pausing alerts until %s', self.disabled_until)
+        else:
+            self.disabled_until = self.now()
+            LOGGER.debug('Unpausing alerts')
+
+    @rumps.clicked('Pause for 1h')
+    def mute_1h(self, sender):
+        sender.state = not sender.state
+        if sender.state:
+            self.disabled_until = self.now() + datetime.timedelta(hours=1)
+            LOGGER.debug('Pausing alerts until %s', self.disabled_until)
+        else:
+            self.disabled_until = self.now()
+            LOGGER.debug('Unpausing alerts')
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.WARNING)
