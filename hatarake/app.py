@@ -26,6 +26,8 @@ PRIORITY_VERY_HIGH = datetime.timedelta(minutes=30)
 PRIORITY_HIGH = datetime.timedelta(minutes=15)
 PRIORITY_LOW = datetime.timedelta(minutes=5)
 
+CONFIG = hatarake.config.Config(hatarake.CONFIG_PATH)
+
 
 class GrowlNotifier(gntp.config.GrowlNotifier):
     def add_origin_info(self, packet):
@@ -106,8 +108,7 @@ class Hatarake(hatarake.shim.Shim):
     @rumps.timer(300)
     @rumps.clicked(MENU_RELOAD)
     def reload(self, sender):
-        config = hatarake.config.Config(hatarake.CONFIG_PATH)
-        calendar_url = config.config.get('feed', 'nag')
+        calendar_url = CONFIG.config.get('feed', 'nag')
 
         result = requests.get(calendar_url, headers={'User-Agent': hatarake.USER_AGENT})
         cal = Calendar.from_ical(result.text)
@@ -137,9 +138,10 @@ class Hatarake(hatarake.shim.Shim):
             logging.getLogger().setLevel(logging.WARNING)
             self.delay = hatarake.GROWL_INTERVAL
 
-    @rumps.clicked(MENU_ISSUE)
-    def issues(self, sender):
-        webbrowser.open(hatarake.ISSUES_LINK)
+    if CONFIG.getboolean('hatarake', 'development', False):
+        @rumps.clicked(MENU_ISSUE)
+        def issues(self, sender):
+            webbrowser.open(hatarake.ISSUES_LINK)
 
     @rumps.clicked(MENU_REMAINING)
     def remaining(self, sender):

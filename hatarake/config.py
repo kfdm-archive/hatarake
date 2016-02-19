@@ -17,6 +17,14 @@ class Config():
         self.config = ConfigParser.ConfigParser()
         self.config.readfp(codecs.open(self.path, 'r', 'utf8'))
 
+    def getboolean(self, section, option, default=None):
+        try:
+            return self.config.getboolean(section, option)
+        except ConfigParser.NoSectionError:
+            return default
+        except ConfigParser.NoOptionError:
+            return default
+
     def hours(self, ts, default):
         date = ts.date().isoformat()
         logger.info('Checking hour for %s', date)
