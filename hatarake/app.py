@@ -7,7 +7,7 @@ import webbrowser
 import dateutil
 import gntp.config
 import pytz
-import requests
+import hatarake.requests as requests
 import rumps
 from icalendar import Calendar
 
@@ -110,7 +110,7 @@ class Hatarake(hatarake.shim.Shim):
     def reload(self, sender):
         calendar_url = CONFIG.config.get('feed', 'nag')
 
-        result = requests.get(calendar_url, headers={'User-Agent': hatarake.USER_AGENT})
+        result = requests.get(calendar_url)
         cal = Calendar.from_ical(result.text)
         recent = None
 
