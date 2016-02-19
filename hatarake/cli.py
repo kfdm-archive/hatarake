@@ -1,7 +1,7 @@
 import logging
 
 import click
-import requests
+import hatarake.requests as requests
 
 from hatarake.config import Config
 from hatarake.models import Pomodoro
@@ -28,7 +28,6 @@ def submit(start, duration, title):
         api,
         headers={
             'Authorization': 'Token %s' % token,
-            'User-Agent': hatarake.USER_AGENT,
         },
         data={
             'created': start,
@@ -59,7 +58,6 @@ def append(duration, title, api_server=None, api_token=None):
         api + 'append/',
         headers={
             'Authorization': 'Token %s' % token,
-            'User-Agent': hatarake.USER_AGENT,
         },
         data={
             'category': tags,
