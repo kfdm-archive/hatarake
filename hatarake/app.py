@@ -126,17 +126,18 @@ class Hatarake(hatarake.shim.Shim):
         self.last_pomodoro_name = recent['SUMMARY']
         self.last_pomodoro_timestamp = recent['DTEND'].dt
 
-    @rumps.clicked(MENU_DEBUG)
-    def toggledebug(self, sender):
-        sender.state = not sender.state
-        if sender.state:
-            self.delay = 5
-            logging.getLogger().setLevel(logging.INFO)
-            logging.info('Setting debugging to INFO and delay to %d', self.delay)
-        else:
-            logging.info('Setting debugging to WARNING and delay to %d', self.delay)
-            logging.getLogger().setLevel(logging.WARNING)
-            self.delay = hatarake.GROWL_INTERVAL
+    if CONFIG.getboolean('hatarake', 'development', False):
+        @rumps.clicked(MENU_DEBUG)
+        def toggledebug(self, sender):
+            sender.state = not sender.state
+            if sender.state:
+                self.delay = 5
+                logging.getLogger().setLevel(logging.INFO)
+                logging.info('Setting debugging to INFO and delay to %d', self.delay)
+            else:
+                logging.info('Setting debugging to WARNING and delay to %d', self.delay)
+                logging.getLogger().setLevel(logging.WARNING)
+                self.delay = hatarake.GROWL_INTERVAL
 
     if CONFIG.getboolean('hatarake', 'development', False):
         @rumps.clicked(MENU_ISSUE)
