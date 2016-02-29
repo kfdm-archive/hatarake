@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+
 import datetime
 import logging
 import platform
@@ -7,7 +9,7 @@ import webbrowser
 import dateutil
 import gntp.config
 import pytz
-import hatarake.requests as requests
+import hatarake.net as requests
 import rumps
 from icalendar import Calendar
 
