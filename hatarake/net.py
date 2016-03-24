@@ -23,3 +23,4 @@ def add_args(func):
 
 get = add_args(requests.get)
 post = add_args(requests.post)
+put = add_args(requests.put)

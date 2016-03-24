@@ -1,12 +1,13 @@
+import datetime
 import logging
 
 import click
-import hatarake.requests as requests
 
+import hatarake
+import hatarake.net as requests
 from hatarake.config import Config
 from hatarake.models import Pomodoro
 from hatarake.report import render_report
-import hatarake
 
 
 @click.group()
@@ -68,8 +69,25 @@ def append(duration, title, api_server=None, api_token=None):
     print response.text
 
 @main.command()
-def report():
-    model = Pomodoro()
+@click.option('--api_server', envvar='HATARAKE_API_SERVER')
+@click.option('--api_token', envvar='HATARAKE_API_TOKEN')
+@click.argument('label')
+@click.argument('duration', type=int)
+def countdown(api_server, api_token, label, duration):
     config = Config(hatarake.CONFIG_PATH)
-    timezone = config.config.get('report', 'timezone', 'UTC')
-    render_report(model, config, timezone)
+    api = api_server if api_server else config.config.get('countdown', 'api')
+    token = api_token if api_token else config.config.get('countdown', 'token')
+
+    created = datetime.datetime.now() + datetime.timedelta(minutes=duration)
+
+    response = requests.put(
+        api + config.config.get('countdown', 'key') + '/',
+        headers={
+            'Authorization': 'Token %s' % token,
+        },
+        data={
+            'created': created.replace(microsecond=0).isoformat(),
+            'label': label,
+        }
+    )
+    print response.text
