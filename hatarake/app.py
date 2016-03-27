@@ -112,7 +112,13 @@ class Hatarake(hatarake.shim.Shim):
     def reload(self, sender):
         calendar_url = CONFIG.config.get('feed', 'nag')
 
-        result = requests.get(calendar_url)
+        try:
+            result = requests.get(calendar_url)
+        except IOError:
+            self.last_pomodoro_name = 'Error loading calendar'
+            self.last_pomodoro_timestamp = self.now().replace(microsecond=0)
+            return
+
         cal = Calendar.from_ical(result.text)
         recent = None
 
