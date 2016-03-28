@@ -110,7 +110,7 @@ class Hatarake(hatarake.shim.Shim):
     @rumps.timer(300)
     @rumps.clicked(MENU_RELOAD)
     def reload(self, sender):
-        calendar_url = CONFIG.config.get('feed', 'nag')
+        calendar_url = CONFIG.get('feed', 'nag')
 
         try:
             result = requests.get(calendar_url)

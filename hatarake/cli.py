@@ -21,8 +21,8 @@ def main(verbosity):
 @click.argument('title')
 def submit(start, duration, title):
     config = Config(hatarake.CONFIG_PATH)
-    api = config.config.get('server', 'api')
-    token = config.config.get('server', 'token')
+    api = config.get('server', 'api')
+    token = config.get('server', 'token')
 
     response = requests.post(
         api,
@@ -45,8 +45,8 @@ def submit(start, duration, title):
 @click.argument('title')
 def append(duration, title, api_server=None, api_token=None):
     config = Config(hatarake.CONFIG_PATH)
-    api = api_server if api_server else config.config.get('server', 'api')
-    token = api_token if api_token else config.config.get('server', 'token')
+    api = api_server if api_server else config.get('server', 'api')
+    token = api_token if api_token else config.get('server', 'token')
 
     # Split the tags out of the title
     # For now, we remove the tags from the final title to make things neater
@@ -74,13 +74,13 @@ def append(duration, title, api_server=None, api_token=None):
 @click.argument('duration', type=int)
 def countdown(api_server, api_token, label, duration):
     config = Config(hatarake.CONFIG_PATH)
-    api = api_server if api_server else config.config.get('countdown', 'api')
-    token = api_token if api_token else config.config.get('countdown', 'token')
+    api = api_server if api_server else config.get('countdown', 'api')
+    token = api_token if api_token else config.get('countdown', 'token')
 
     created = datetime.datetime.now() + datetime.timedelta(minutes=duration)
 
     response = requests.put(
-        api + config.config.get('countdown', 'key') + '/',
+        api + config.get('countdown', 'key') + '/',
         headers={
             'Authorization': 'Token %s' % token,
         },
