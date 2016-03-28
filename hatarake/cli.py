@@ -6,8 +6,6 @@ import click
 import hatarake
 import hatarake.net as requests
 from hatarake.config import Config
-from hatarake.models import Pomodoro
-from hatarake.report import render_report
 
 
 @click.group()
