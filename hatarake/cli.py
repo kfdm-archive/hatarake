@@ -9,9 +9,10 @@ from hatarake.config import Config
 
 
 @click.group()
-def main():
-    logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger('gntp').setLevel(logging.INFO)
+@click.option('-v', '--verbosity', count=True)
+def main(verbosity):
+    logging.basicConfig(level=logging.WARNING - verbosity * 10)
+    logging.getLogger('gntp').setLevel(logging.ERROR - verbosity * 10)
 
 
 @main.command()
