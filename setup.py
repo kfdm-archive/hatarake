@@ -1,42 +1,47 @@
+from platform import platform
 from setuptools import setup
 from hatarake import __version__
 
-APP = ['hatarake/app.py']
-DATA_FILES = []
-OPTIONS = {
-    'argv_emulation': True,
-    'plist': {
-        'LSUIElement': True,
-    },
-    'packages': [
-        'certifi',
+kwargs = {}
+install_requires=[
+    'certifi',
+    'click',
+    'icalendar',
+    'requests',
+]
+
+if 'Darwin' in platform():
+    kwargs['app'] = ['hatarake/app.py']
+    kwargs['data_files'] = []
+    kwargs['setup_requires'] = ['py2app']
+    kwargs['options'] = {'py2app': {
+        'argv_emulation': True,
+        'plist': {
+            'LSUIElement': True,
+        },
+        'packages': [
+            'certifi',
+            'gntp',
+            'icalendar',
+            'rumps',
+        ],
+    }}
+    install_requires += [
         'gntp',
-        'icalendar',
-        'jinja2',
         'rumps',
-    ],
-}
+    ]
+else:
+    kwargs = {}
+
 
 setup(
     name='Hatarake',
     author='Paul Traylor',
     version=__version__,
-    app=APP,
-    data_files=DATA_FILES,
-    options={'py2app': OPTIONS},
-    setup_requires=['py2app'],
-    install_requires=[
-        'certifi',
-        'click',
-        'gntp',
-        'icalendar',
-        'jinja2',
-        'requests',
-        'rumps',
-    ],
     entry_points={
         'console_scripts': [
             'hatarake = hatarake.cli:main'
         ]
-    }
+    },
+    **kwargs
 )
