@@ -8,9 +8,8 @@ from __future__ import absolute_import
 import requests
 from functools import wraps
 
-from hatarake.version import __version__
+from hatarake import USER_AGENT
 
-USER_AGENT = 'Hatarake/%s https://github.com/kfdm/hatarake' % __version__
 
 def add_args(func):
     @wraps(func)
