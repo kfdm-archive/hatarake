@@ -20,6 +20,7 @@ def main(verbosity):
 @click.argument('duration', type=int)
 @click.argument('title')
 def submit(start, duration, title):
+    '''Submit a pomodoro to the server'''
     config = Config(hatarake.CONFIG_PATH)
     api = config.get('server', 'api')
     token = config.get('server', 'token')
@@ -44,6 +45,7 @@ def submit(start, duration, title):
 @click.option('--api_token', envvar='HATARAKE_API_TOKEN')
 @click.argument('title')
 def append(duration, title, api_server=None, api_token=None):
+    '''Append time to a pomodoro'''
     config = Config(hatarake.CONFIG_PATH)
     api = api_server if api_server else config.get('server', 'api')
     token = api_token if api_token else config.get('server', 'token')
@@ -53,6 +55,8 @@ def append(duration, title, api_server=None, api_token=None):
     # but in the future, may want to leave the hash tag in the full title
     tags = {tag.strip("#") for tag in title.split() if tag.startswith("#")}
     title = ' '.join({tag for tag in title.split() if not tag.startswith('#')})
+
+
 
     response = requests.post(
         api + 'append/',
@@ -73,6 +77,7 @@ def append(duration, title, api_server=None, api_token=None):
 @click.argument('label')
 @click.argument('duration', type=int)
 def countdown(api_server, api_token, label, duration):
+    '''Submit a new countdown'''
     config = Config(hatarake.CONFIG_PATH)
     api = api_server if api_server else config.get('countdown', 'api')
     token = api_token if api_token else config.get('countdown', 'token')
