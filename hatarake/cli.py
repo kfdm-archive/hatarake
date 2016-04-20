@@ -8,6 +8,9 @@ import hatarake.net as requests
 from hatarake.config import Config
 
 
+logger = logging.getLogger(__name__)
+
+
 @click.group()
 @click.option('-v', '--verbosity', count=True)
 def main(verbosity):
@@ -95,3 +98,24 @@ def countdown(api_server, api_token, label, duration):
         }
     )
     print response.text
+
+
+@main.command()
+@click.argument('key')
+@click.argument('value')
+def stat(key, value):
+    '''Submit stat data to server'''
+    config = Config(hatarake.CONFIG_PATH)
+
+    response = requests.post(
+        config.get('stat', 'api'),
+        headers={
+            'Authorization': 'Token %s' % config.get('stat', 'token'),
+        },
+        data={
+            'key': key,
+            'value': value,
+        }
+    )
+    logger.info('POSTing to %s %s', response.request.url, response.request.body)
+    print response.text 
