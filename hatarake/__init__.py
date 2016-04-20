@@ -17,10 +17,23 @@ if 'Darwin' in platform.uname():
         'Hatarake',
         'config.ini'
     )
+    DB_PATH = os.path.join(
+        os.path.expanduser("~"),
+        'Library',
+        'Application Support',
+        'Hatarake',
+        'history.db'
+    )
 else:
     CONFIG_PATH = os.path.join(
         os.path.expanduser("~"),
         '.config',
         'Hatarake',
         'config.ini',
+    )
+    DB_PATH = os.path.join(
+        os.path.expanduser("~"),
+        '.config',
+        'Hatarake',
+        'history.db',
     )
