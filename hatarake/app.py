@@ -7,14 +7,14 @@ import platform
 import webbrowser
 
 import dateutil
+import dateutil.parser
 import gntp.config
-import pytz
-import hatarake.net as requests
 import rumps
 from icalendar import Calendar
 
 import hatarake
 import hatarake.config
+import hatarake.net as requests
 import hatarake.shim
 
 LOGGER = logging.getLogger(__name__)
@@ -84,6 +84,9 @@ class Hatarake(hatarake.shim.Shim):
 
     @rumps.timer(1)
     def _update_clock(self, sender):
+        if self.last_pomodoro_timestamp is None:
+            LOGGER.warning('Timestamp is None')
+            return
         now = self.now().replace(microsecond=0)
         tomorrow = now.replace(hour=0, minute=0, second=0) + datetime.timedelta(days=1)
         delta = now - self.last_pomodoro_timestamp
@@ -107,32 +110,52 @@ class Hatarake(hatarake.shim.Shim):
 
         self.menu[MENU_REMAINING].title = u'⌛️Time Remaining today: {}'.format(tomorrow - now)
 
-    @rumps.timer(300)
-    @rumps.clicked(MENU_RELOAD)
-    def reload(self, sender):
-        calendar_url = CONFIG.get('feed', 'nag')
+    if CONFIG.getboolean('feed', 'nag'):
+        @rumps.timer(300)
+        @rumps.clicked(MENU_RELOAD)
+        def reload(self, sender):
 
-        try:
-            result = requests.get(calendar_url)
-        except IOError:
-            self.last_pomodoro_name = 'Error loading calendar'
-            self.last_pomodoro_timestamp = self.now().replace(microsecond=0)
-            return
+            calendar_url = CONFIG.get('feed', 'nag')
 
-        cal = Calendar.from_ical(result.text)
-        recent = None
+            try:
+                result = requests.get(calendar_url)
+            except IOError:
+                self.last_pomodoro_name = 'Error loading calendar'
+                self.last_pomodoro_timestamp = self.now().replace(microsecond=0)
+                return
 
-        for entry in cal.subcomponents:
-            if recent is None:
-                recent = entry
-                continue
-            if 'DTEND' not in entry:
-                continue
-            if entry['DTEND'].dt > recent['DTEND'].dt:
-                recent = entry
+            cal = Calendar.from_ical(result.text)
+            recent = None
 
-        self.last_pomodoro_name = recent['SUMMARY']
-        self.last_pomodoro_timestamp = recent['DTEND'].dt
+            for entry in cal.subcomponents:
+                if recent is None:
+                    recent = entry
+                    continue
+                if 'DTEND' not in entry:
+                    continue
+                if entry['DTEND'].dt > recent['DTEND'].dt:
+                    recent = entry
+
+            self.last_pomodoro_name = recent['SUMMARY']
+            self.last_pomodoro_timestamp = recent['DTEND'].dt
+    else:
+        @rumps.timer(300)
+        @rumps.clicked(MENU_RELOAD)
+        def reload(self, sender):
+            api = CONFIG.get('server', 'api')
+            token = CONFIG.get('server', 'token')
+
+            response = requests.get(api, token=token, params={
+                'orderby':'created',
+                'limit':1,
+            })
+            response.raise_for_status()
+            result = response.json()['results'].pop()
+            self.last_pomodoro_name = result['title']
+            self.last_pomodoro_timestamp = dateutil.parser.parse(result['created'])\
+                .replace(microsecond=0) + datetime.timedelta(minutes=result['duration'])
+            print result
+
 
     if CONFIG.getboolean('hatarake', 'development', False):
         @rumps.clicked(MENU_DEBUG)
