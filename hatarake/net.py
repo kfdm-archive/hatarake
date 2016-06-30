@@ -14,9 +14,15 @@ from hatarake import USER_AGENT
 def add_args(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if 'headers' not in kwargs:
-            kwargs['headers'] = {}
-        kwargs['headers']['user-agent'] = USER_AGENT
+        try:
+            kwargs['headers']['user-agent'] = USER_AGENT
+        except KeyError:
+            kwargs['headers'] = {'user-agent': USER_AGENT}
+
+        if 'token' in kwargs:
+            token = kwargs.pop('token')
+            kwargs['headers']['Authorization'] = 'Token %s' % token
+
         return func(*args, **kwargs)
     return wrapper
 
