@@ -45,10 +45,7 @@ try:
     from raven.conf import setup_logging
     from raven.handlers.logging import SentryHandler
     from hatarake.config import Config
-
-    config = Config(CONFIG_PATH)
-
-    setup_logging(SentryHandler(config.get('raven', 'dsn')))
+    setup_logging(SentryHandler(Config(CONFIG_PATH).get('raven', 'dsn')))
 except ImportError:
     logging.warning('Unable to import raven')
 except ValueError:
