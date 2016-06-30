@@ -39,6 +39,7 @@ def submit(start, duration, title):
             'title': title,
         }
     )
+    response.raise_for_status()
     print response.text
 
 
@@ -59,10 +60,8 @@ def append(duration, title, api_server=None, api_token=None):
     tags = {tag.strip("#") for tag in title.split() if tag.startswith("#")}
     title = ' '.join({tag for tag in title.split() if not tag.startswith('#')})
 
-
-
     response = requests.post(
-        api + 'append/',
+        api + '/append',
         headers={
             'Authorization': 'Token %s' % token,
         },
@@ -72,6 +71,7 @@ def append(duration, title, api_server=None, api_token=None):
             'title': title,
         }
     )
+    response.raise_for_status()
     print response.text
 
 @main.command()
@@ -88,7 +88,7 @@ def countdown(api_server, api_token, label, duration):
     created = datetime.datetime.now() + datetime.timedelta(minutes=duration)
 
     response = requests.put(
-        api + config.get('countdown', 'key') + '/',
+        api,
         headers={
             'Authorization': 'Token %s' % token,
         },
@@ -97,6 +97,7 @@ def countdown(api_server, api_token, label, duration):
             'label': label,
         }
     )
+    response.raise_for_status()
     print response.text
 
 
@@ -118,4 +119,5 @@ def stat(key, value):
         }
     )
     logger.info('POSTing to %s %s', response.request.url, response.request.body)
-    print response.text 
+    response.raise_for_status()
+    print response.text
