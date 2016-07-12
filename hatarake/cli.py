@@ -1,12 +1,13 @@
 import datetime
 import logging
+import textwrap
+import time
 
 import click
 
 import hatarake
 import hatarake.net as requests
 from hatarake.config import Config
-
 
 logger = logging.getLogger(__name__)
 
@@ -121,3 +122,20 @@ def stat(key, value):
     logger.info('POSTing to %s %s', response.request.url, response.request.body)
     response.raise_for_status()
     print response.text
+
+
+@main.command()
+@click.argument('name', default='heartbeat')
+def heartbeat(name):
+    config = Config(hatarake.CONFIG_PATH)
+    url = config.get('prometheus', 'pushgateway')
+
+    payload = textwrap.dedent('''
+    # TYPE {name} gauge
+    # HELP {name} Last heartbeat based on unixtimestamp
+    {name} {time}
+    ''').format(name=name, time=int(time.time())).lstrip()
+
+    response = requests.post(url, data=payload)
+    response.raise_for_status()
+    click.echo(response)
