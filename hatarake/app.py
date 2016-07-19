@@ -23,6 +23,7 @@ MENU_RELOAD = u'Reload'
 MENU_DEBUG = u'💻Debug'
 MENU_ISSUE = u'⚠️Issues'
 MENU_REMAINING = u'Remaining'
+MENU_PAUSE = u'Pause'
 
 PRIORITY_VERY_HIGH = datetime.timedelta(minutes=30)
 PRIORITY_HIGH = datetime.timedelta(minutes=15)
@@ -45,9 +46,17 @@ class Growler(object):
     def __init__(self):
         self.growl = GrowlNotifier(
             applicationName='Hatarake',
-            notifications=['Nag']
+            notifications=['Nag', 'Info']
         )
         self.growl.register()
+
+    def info(self, title, message, **kwargs):
+        self.growl.notify(
+            noteType='Info',
+            title=title,
+            description=message,
+            **kwargs
+        )
 
     def nag(self, title, delta, **kwargs):
         if delta < PRIORITY_LOW:
@@ -179,25 +188,25 @@ class Hatarake(hatarake.shim.Shim):
     def remaining(self, sender):
         pass
 
-    @rumps.clicked('Pause for 15m')
+    @rumps.clicked(MENU_PAUSE, 'Pause for 15m')
     def mute_1m(self, sender):
         sender.state = not sender.state
         if sender.state:
             self.disabled_until = self.now() + datetime.timedelta(minutes=15)
-            LOGGER.debug('Pausing alerts until %s', self.disabled_until)
+            self.notifier.info('Pause', 'Pausing alerts until %s' % self.disabled_until)
         else:
             self.disabled_until = self.now()
-            LOGGER.debug('Unpausing alerts')
+            self.notifier.info('Unpaused Alerts')
 
-    @rumps.clicked('Pause for 1h')
+    @rumps.clicked(MENU_PAUSE, 'Pause for 1h')
     def mute_1h(self, sender):
         sender.state = not sender.state
         if sender.state:
             self.disabled_until = self.now() + datetime.timedelta(hours=1)
-            LOGGER.debug('Pausing alerts until %s', self.disabled_until)
+            self.notifier.info('Pause', 'Pausing alerts until %s' % self.disabled_until)
         else:
             self.disabled_until = self.now()
-            LOGGER.debug('Unpausing alerts')
+            self.notifier.info('Unpaused Alerts')
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.WARNING)
