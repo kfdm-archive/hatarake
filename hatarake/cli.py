@@ -41,7 +41,7 @@ def submit(start, duration, title):
         }
     )
     response.raise_for_status()
-    print response.text
+    click.echo(response.text)
 
 
 @main.command()
@@ -73,7 +73,7 @@ def append(duration, title, api_server=None, api_token=None):
         }
     )
     response.raise_for_status()
-    print response.text
+    click.echo(response.text)
 
 @main.command()
 @click.option('--api_server', envvar='HATARAKE_API_SERVER')
@@ -99,7 +99,7 @@ def countdown(api_server, api_token, label, duration):
         }
     )
     response.raise_for_status()
-    print response.text
+    click.echo(response.text)
 
 
 @main.command()
@@ -121,7 +121,7 @@ def stat(key, value):
     )
     logger.info('POSTing to %s %s', response.request.url, response.request.body)
     response.raise_for_status()
-    print response.text
+    click.echo(response.text)
 
 
 @main.command()
@@ -138,4 +138,4 @@ def heartbeat(name):
 
     response = requests.post(url, data=payload)
     response.raise_for_status()
-    click.echo(response)
+    click.echo(response.text)
