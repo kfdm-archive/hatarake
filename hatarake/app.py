@@ -25,6 +25,9 @@ MENU_ISSUE = u'⚠️Issues'
 MENU_REMAINING = u'Remaining'
 MENU_PAUSE = u'Pause'
 
+MENU_PAUSE_15M = u'Pause for 15m'
+MENU_PAUSE_1H = u'Pause for 1h'
+
 PRIORITY_VERY_HIGH = datetime.timedelta(minutes=30)
 PRIORITY_HIGH = datetime.timedelta(minutes=15)
 PRIORITY_LOW = datetime.timedelta(minutes=5)
@@ -197,22 +200,24 @@ class Hatarake(hatarake.shim.Shim):
     def remaining(self, sender):
         pass
 
-    @rumps.clicked(MENU_PAUSE, 'Pause for 15m')
+    @rumps.clicked(MENU_PAUSE, MENU_PAUSE_15M)
     def mute_1m(self, sender):
         sender.state = not sender.state
         if sender.state:
             self.disabled_until = self.now() + datetime.timedelta(minutes=15)
             self.notifier.info('Pause', 'Pausing alerts until %s' % self.disabled_until)
+            self.menu[MENU_PAUSE][MENU_PAUSE_1H].state = False
         else:
             self.disabled_until = self.now()
             self.notifier.info('Unpaused Alerts')
 
-    @rumps.clicked(MENU_PAUSE, 'Pause for 1h')
+    @rumps.clicked(MENU_PAUSE, MENU_PAUSE_1H)
     def mute_1h(self, sender):
         sender.state = not sender.state
         if sender.state:
             self.disabled_until = self.now() + datetime.timedelta(hours=1)
             self.notifier.info('Pause', 'Pausing alerts until %s' % self.disabled_until)
+            self.menu[MENU_PAUSE][MENU_PAUSE_15M].state = False
         else:
             self.disabled_until = self.now()
             self.notifier.info('Unpaused Alerts')
