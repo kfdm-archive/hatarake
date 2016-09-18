@@ -48,15 +48,21 @@ class Growler(object):
             applicationName='Hatarake',
             notifications=['Nag', 'Info']
         )
-        self.growl.register()
+        try:
+            self.growl.register()
+        except:
+            logging.exception('Error registering with growl server')
 
     def info(self, title, message, **kwargs):
-        self.growl.notify(
-            noteType='Info',
-            title=title,
-            description=message,
-            **kwargs
-        )
+        try:
+            self.growl.notify(
+                noteType='Info',
+                title=title,
+                description=message,
+                **kwargs
+            )
+        except:
+            logging.exception('Error sending growl message')
 
     def nag(self, title, delta, **kwargs):
         if delta < PRIORITY_LOW:
@@ -66,14 +72,17 @@ class Growler(object):
         elif delta > PRIORITY_HIGH:
             kwargs['priority'] = 1
 
-        self.growl.notify(
-            noteType='Nag',
-            title=u"働け".encode('utf8', 'replace'),
-            description=u'[{0}] was {1} ago'.format(title, delta).encode('utf8', 'replace'),
-            sticky=True,
-            identifier=__file__,
-            **kwargs
-        )
+        try:
+            self.growl.notify(
+                noteType='Nag',
+                title=u"働け".encode('utf8', 'replace'),
+                description=u'[{0}] was {1} ago'.format(title, delta).encode('utf8', 'replace'),
+                sticky=True,
+                identifier=__file__,
+                **kwargs
+            )
+        except:
+            logging.exception('Error sending growl message')
 
 
 class Hatarake(hatarake.shim.Shim):
