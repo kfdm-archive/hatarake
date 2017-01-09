@@ -173,8 +173,7 @@ class Hatarake(hatarake.shim.Shim):
             response.raise_for_status()
             result = response.json()['results'].pop()
             self.last_pomodoro_name = result['title']
-            self.last_pomodoro_timestamp = dateutil.parser.parse(result['created'])\
-                .replace(microsecond=0) + datetime.timedelta(minutes=result['duration'])
+            self.last_pomodoro_timestamp = dateutil.parser.parse(result['end'])
             print result
 
 

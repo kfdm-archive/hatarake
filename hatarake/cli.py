@@ -55,6 +55,9 @@ def append(duration, title, api_server=None, api_token=None):
     api = api_server if api_server else config.get('server', 'api')
     token = api_token if api_token else config.get('server', 'token')
 
+    end = datetime.datetime.utcnow().replace(microsecond=0)
+    start = end - datetime.timedelta(minutes=duration)
+
     # Split the tags out of the title
     # For now, we remove the tags from the final title to make things neater
     # but in the future, may want to leave the hash tag in the full title
@@ -67,8 +70,9 @@ def append(duration, title, api_server=None, api_token=None):
             'Authorization': 'Token %s' % token,
         },
         data={
+            'start': start.isoformat(),
+            'end': end.isoformat(),
             'category': tags,
-            'duration': duration,
             'title': title,
         }
     )
