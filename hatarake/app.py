@@ -100,34 +100,37 @@ class Hatarake(hatarake.shim.Shim):
 
         self.reload(None)
 
-    def now(self):
-        return datetime.datetime.now(dateutil.tz.tzlocal())
-
     @rumps.timer(1)
     def _update_clock(self, sender):
         if self.last_pomodoro_timestamp is None:
             LOGGER.warning('Timestamp is None')
             return
-        now = self.now().replace(microsecond=0)
-        tomorrow = now.replace(hour=0, minute=0, second=0) + datetime.timedelta(days=1)
-        delta = now - self.last_pomodoro_timestamp
 
-        LOGGER.debug('Pomodoro %s %s, %s', self.title, self.last_pomodoro_timestamp, now)
+        self.now = datetime.datetime.now(dateutil.tz.tzlocal()).replace(microsecond=0)
+        tomorrow = self.now.replace(hour=0, minute=0, second=0) + datetime.timedelta(days=1)
+
+        # Show a normal delta with an hour glass if we have an active Pomodoro
+        if self.last_pomodoro_timestamp > self.now:
+            delta = self.last_pomodoro_timestamp - self.now
+            self.title = u'⏳{0}'.format(delta)
+        # Show an alarm clock if we do not have an active pomodoro
+        else:
+            delta = self.now - self.last_pomodoro_timestamp
+            if delta.days:
+                self.title = u'⏳{∞}'
+            else:
+                self.title = u'⏰{0}'.format(delta)
+
+        LOGGER.debug('Pomodoro %s %s, %s', self.title, self.last_pomodoro_timestamp, self.now)
 
         self.menu[MENU_RELOAD].title = u'⏰Last pomodoro [{0}] was {1} ago'.format(
             self.last_pomodoro_name,
             delta
         )
 
-        # If delta is more than a day ago, show the infinity symbol to avoid
-        # having a super long label in our menubar
-        if delta.days:
-            delta = u'∞'
-        self.title = u'⏳{0}'.format(delta)
+        self.menu[MENU_REMAINING].title = u'⌛️Time Remaining today: {}'.format(tomorrow - self.now)
 
-        self.menu[MENU_REMAINING].title = u'⌛️Time Remaining today: {}'.format(tomorrow - now)
-
-        if self.disabled_until and self.disabled_until > now:
+        if self.disabled_until and self.disabled_until > self.now:
             self.disabled_until = None
         if self.disabled_until is None:
             if delta.total_seconds() % self.delay == 0:
@@ -144,7 +147,7 @@ class Hatarake(hatarake.shim.Shim):
                 result = requests.get(calendar_url)
             except IOError:
                 self.last_pomodoro_name = 'Error loading calendar'
-                self.last_pomodoro_timestamp = self.now().replace(microsecond=0)
+                self.last_pomodoro_timestamp = self.now.replace(microsecond=0)
                 return
 
             cal = Calendar.from_ical(result.text)
@@ -205,7 +208,7 @@ class Hatarake(hatarake.shim.Shim):
     def mute_1m(self, sender):
         sender.state = not sender.state
         if sender.state:
-            self.disabled_until = self.now() + datetime.timedelta(minutes=15)
+            self.disabled_until = self.now + datetime.timedelta(minutes=15)
             self.notifier.info('Pause', 'Pausing alerts until %s' % self.disabled_until)
             self.menu[MENU_PAUSE][MENU_PAUSE_1H].state = False
         else:
@@ -216,7 +219,7 @@ class Hatarake(hatarake.shim.Shim):
     def mute_1h(self, sender):
         sender.state = not sender.state
         if sender.state:
-            self.disabled_until = self.now() + datetime.timedelta(hours=1)
+            self.disabled_until = self.now + datetime.timedelta(hours=1)
             self.notifier.info('Pause', 'Pausing alerts until %s' % self.disabled_until)
             self.menu[MENU_PAUSE][MENU_PAUSE_15M].state = False
         else:
