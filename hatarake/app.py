@@ -96,7 +96,7 @@ class Hatarake(hatarake.shim.Shim):
         self.notifier = Growler()
         self.last_pomodoro_name = None
         self.last_pomodoro_timestamp = None
-        self.disabled_until = self.now()
+        self.disabled_until = None
 
         self.reload(None)
 
@@ -114,10 +114,6 @@ class Hatarake(hatarake.shim.Shim):
 
         LOGGER.debug('Pomodoro %s %s, %s', self.title, self.last_pomodoro_timestamp, now)
 
-        if now > self.disabled_until:
-            if delta.total_seconds() % self.delay == 0:
-                self.notifier.nag(self.last_pomodoro_name, delta)
-
         self.menu[MENU_RELOAD].title = u'⏰Last pomodoro [{0}] was {1} ago'.format(
             self.last_pomodoro_name,
             delta
@@ -130,6 +126,12 @@ class Hatarake(hatarake.shim.Shim):
         self.title = u'⏳{0}'.format(delta)
 
         self.menu[MENU_REMAINING].title = u'⌛️Time Remaining today: {}'.format(tomorrow - now)
+
+        if self.disabled_until and self.disabled_until > now:
+            self.disabled_until = None
+        if self.disabled_until is None:
+            if delta.total_seconds() % self.delay == 0:
+                self.notifier.nag(self.last_pomodoro_name, delta)
 
     if CONFIG.getboolean('feed', 'nag'):
         @rumps.timer(300)
@@ -207,7 +209,7 @@ class Hatarake(hatarake.shim.Shim):
             self.notifier.info('Pause', 'Pausing alerts until %s' % self.disabled_until)
             self.menu[MENU_PAUSE][MENU_PAUSE_1H].state = False
         else:
-            self.disabled_until = self.now()
+            self.disabled_until = None
             self.notifier.info('Unpaused Alerts')
 
     @rumps.clicked(MENU_PAUSE, MENU_PAUSE_1H)
@@ -218,7 +220,7 @@ class Hatarake(hatarake.shim.Shim):
             self.notifier.info('Pause', 'Pausing alerts until %s' % self.disabled_until)
             self.menu[MENU_PAUSE][MENU_PAUSE_15M].state = False
         else:
-            self.disabled_until = self.now()
+            self.disabled_until = None
             self.notifier.info('Unpaused Alerts')
 
 if __name__ == "__main__":
