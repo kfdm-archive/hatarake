@@ -71,7 +71,10 @@ class Growler(object):
         except:
             logging.exception('Error sending growl message')
 
-    def nag(self, title, delta, **kwargs):
+    def nag(self, title, delta, delay, **kwargs):
+        if delta.total_seconds() % delay != 0:
+            return
+
         if delta < PRIORITY_LOW:
             return  # Skip low priority nags
         if delta > PRIORITY_VERY_HIGH:
@@ -100,44 +103,63 @@ class Hatarake(hatarake.shim.Shim):
         self.notifier = Growler()
         self.pomodoro = None
         self.disabled_until = None
+        self.active = False
 
         self.reload(None)
 
+    def label(self, menu, fmt, *args, **kwargs):
+        self.menu[menu].title = fmt.format(*args, **kwargs)
+
     @rumps.timer(1)
     def _update_clock(self, sender):
+        self.now = datetime.datetime.now(dateutil.tz.tzlocal())\
+            .replace(microsecond=0)
+
         if self.pomodoro is None:
-            LOGGER.warning('Timestamp is None')
+            LOGGER.debug('No pomodoro found')
             return
-
-        self.now = datetime.datetime.now(dateutil.tz.tzlocal()).replace(microsecond=0)
-        tomorrow = self.now.replace(hour=0, minute=0, second=0) + datetime.timedelta(days=1)
-
-        # Show a normal delta with an hour glass if we have an active Pomodoro
-        if self.pomodoro.ts > self.now:
-            delta = self.pomodoro.ts - self.now
-            self.title = u'⏳{0}'.format(delta)
-        # Show an alarm clock if we do not have an active pomodoro
-        else:
-            delta = self.now - self.pomodoro.ts
-            if delta.days:
-                self.title = u'⏳{∞}'
-            else:
-                self.title = u'⏰{0}'.format(delta)
-
-        LOGGER.debug('Pomodoro %s %s, %s', self.title, self.pomodoro.ts, self.now)
-
-        self.menu[MENU_RELOAD].title = u'⏰Last pomodoro [{0}] was {1} ago'.format(
-            self.pomodoro.name,
-            delta
+        LOGGER.debug(
+            'Pomodoro %s > %s > %s',
+            self.pomodoro.name, self.pomodoro.ts, self.now
         )
 
-        self.menu[MENU_REMAINING].title = u'⌛️Time Remaining today: {}'.format(tomorrow - self.now)
+        self.active = self.pomodoro.ts > self.now
 
-        if self.disabled_until and self.disabled_until > self.now:
+        # Update our menu showing how much time is left today
+        remainder = self.now.replace(hour=0, minute=0, second=0) \
+            + datetime.timedelta(days=1) - self.now
+        self.label(MENU_REMAINING, u'⌛️Time Remaining today: {}', remainder)
+
+        # If we have an active Pomodoro, then we can just update our title
+        # and be finished
+        if self.active:
+            delta = self.pomodoro.ts - self.now
+            self.title = u'⏳{0}'.format(delta)
+            self.label(
+                MENU_RELOAD, u'⏳{0} remaining for {1}',
+                delta, self.pomodoro.name
+                )
+            return
+
+        # Show an alarm clock if we do not have an active pomodoro
+        delta = self.now - self.pomodoro.ts
+        if delta.days:
+            self.title = u'⏳{∞}'
+        else:
+            self.title = u'⏰{0}'.format(delta)
+
+        self.label(
+            MENU_RELOAD, u'⏰Last pomodoro [{0}] was {1} ago',
+            self.pomodoro.name, delta
+            )
+
+        if self.disabled_until:
+            if self.disabled_until < self.now:
+                return
             self.disabled_until = None
-        if self.disabled_until is None:
-            if delta.total_seconds() % self.delay == 0:
-                self.notifier.nag(self.pomodoro.name, delta)
+
+        if self.pomodoro.ts < self.now:
+            self.notifier.nag(self.pomodoro.name, delta, self.delay)
 
     if CONFIG.getboolean('feed', 'nag'):
         @rumps.timer(300)
@@ -149,8 +171,10 @@ class Hatarake(hatarake.shim.Shim):
             try:
                 result = requests.get(calendar_url)
             except IOError:
-                self.pomodoro.name = 'Error loading calendar'
-                self.pomodoro.ts = self.now.replace(microsecond=0)
+                self.pomodoro = Pomodoro(
+                    'Error loading calendar',
+                    self.now.replace(microsecond=0)
+                    )
                 return
 
             cal = Calendar.from_ical(result.text)
