@@ -10,8 +10,6 @@ ISSUES_API = 'https://api.github.com/repos/kfdm/hatarake/issues?state=open'
 
 USER_AGENT = 'Hatarake/%s https://github.com/kfdm/hatarake' % __version__
 
-GROWL_INTERVAL = 30
-
 if 'Darwin' in platform.uname():
     CONFIG_PATH = os.path.join(
         os.path.expanduser("~"),

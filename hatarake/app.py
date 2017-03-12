@@ -39,6 +39,8 @@ PRIORITY_VERY_HIGH = datetime.timedelta(minutes=30)
 PRIORITY_HIGH = datetime.timedelta(minutes=15)
 PRIORITY_LOW = datetime.timedelta(minutes=5)
 
+GROWL_INTERVAL = 60
+
 CONFIG = hatarake.config.Config(hatarake.CONFIG_PATH)
 
 
@@ -105,7 +107,7 @@ class Hatarake(hatarake.shim.Shim):
     def __init__(self):
         super(Hatarake, self).__init__("Hatarake", "Hatarake")
 
-        self.delay = hatarake.GROWL_INTERVAL
+        self.delay = GROWL_INTERVAL
         self.notifier = Growler()
         self.pomodoro = None
         self.disabled_until = None
@@ -228,7 +230,7 @@ class Hatarake(hatarake.shim.Shim):
             else:
                 logging.info('Setting debugging to WARNING and delay to %d', self.delay)
                 logging.getLogger().setLevel(logging.WARNING)
-                self.delay = hatarake.GROWL_INTERVAL
+                self.delay = GROWL_INTERVAL
 
     if CONFIG.getboolean('hatarake', 'development', False):
         @rumps.clicked(MENU_ISSUE)
