@@ -29,6 +29,12 @@ MENU_PAUSE = u'Pause'
 MENU_PAUSE_15M = u'Pause for 15m'
 MENU_PAUSE_1H = u'Pause for 1h'
 
+LABEL_ACTIVE = u'⏳{0}'
+LABEL_REMAINING = u'⏳{0} remaining for {1}'
+LABEL_SINCE = u'⏰Last pomodoro [{0}] was {1} ago'
+LABEL_OVERDUE = u'⏰{0}'
+LABEL_TOMORROW = u'⌛️Time Remaining today: {}'
+
 PRIORITY_VERY_HIGH = datetime.timedelta(minutes=30)
 PRIORITY_HIGH = datetime.timedelta(minutes=15)
 PRIORITY_LOW = datetime.timedelta(minutes=5)
@@ -128,15 +134,15 @@ class Hatarake(hatarake.shim.Shim):
         # Update our menu showing how much time is left today
         remainder = self.now.replace(hour=0, minute=0, second=0) \
             + datetime.timedelta(days=1) - self.now
-        self.label(MENU_REMAINING, u'⌛️Time Remaining today: {}', remainder)
+        self.label(MENU_REMAINING, LABEL_TOMORROW, remainder)
 
         # If we have an active Pomodoro, then we can just update our title
         # and be finished
         if self.active:
             delta = self.pomodoro.ts - self.now
-            self.title = u'⏳{0}'.format(delta)
+            self.title = LABEL_ACTIVE.format(delta)
             self.label(
-                MENU_RELOAD, u'⏳{0} remaining for {1}',
+                MENU_RELOAD, LABEL_REMAINING,
                 delta, self.pomodoro.name
                 )
             return
@@ -144,12 +150,12 @@ class Hatarake(hatarake.shim.Shim):
         # Show an alarm clock if we do not have an active pomodoro
         delta = self.now - self.pomodoro.ts
         if delta.days:
-            self.title = u'⏳{∞}'
+            self.title = LABEL_OVERDUE.format('{∞}')
         else:
-            self.title = u'⏰{0}'.format(delta)
+            self.title = LABEL_OVERDUE.format(delta)
 
         self.label(
-            MENU_RELOAD, u'⏰Last pomodoro [{0}] was {1} ago',
+            MENU_RELOAD, LABEL_SINCE,
             self.pomodoro.name, delta
             )
 
