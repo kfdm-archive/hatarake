@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
+import collections
 import datetime
 import logging
 import platform
@@ -33,6 +34,9 @@ PRIORITY_HIGH = datetime.timedelta(minutes=15)
 PRIORITY_LOW = datetime.timedelta(minutes=5)
 
 CONFIG = hatarake.config.Config(hatarake.CONFIG_PATH)
+
+
+Pomodoro = collections.namedtuple('Pomodoro', ['name', 'ts'])
 
 
 class GrowlNotifier(gntp.config.GrowlNotifier):
@@ -94,15 +98,14 @@ class Hatarake(hatarake.shim.Shim):
 
         self.delay = hatarake.GROWL_INTERVAL
         self.notifier = Growler()
-        self.last_pomodoro_name = None
-        self.last_pomodoro_timestamp = None
+        self.pomodoro = None
         self.disabled_until = None
 
         self.reload(None)
 
     @rumps.timer(1)
     def _update_clock(self, sender):
-        if self.last_pomodoro_timestamp is None:
+        if self.pomodoro is None:
             LOGGER.warning('Timestamp is None')
             return
 
@@ -110,21 +113,21 @@ class Hatarake(hatarake.shim.Shim):
         tomorrow = self.now.replace(hour=0, minute=0, second=0) + datetime.timedelta(days=1)
 
         # Show a normal delta with an hour glass if we have an active Pomodoro
-        if self.last_pomodoro_timestamp > self.now:
-            delta = self.last_pomodoro_timestamp - self.now
+        if self.pomodoro.ts > self.now:
+            delta = self.pomodoro.ts - self.now
             self.title = u'⏳{0}'.format(delta)
         # Show an alarm clock if we do not have an active pomodoro
         else:
-            delta = self.now - self.last_pomodoro_timestamp
+            delta = self.now - self.pomodoro.ts
             if delta.days:
                 self.title = u'⏳{∞}'
             else:
                 self.title = u'⏰{0}'.format(delta)
 
-        LOGGER.debug('Pomodoro %s %s, %s', self.title, self.last_pomodoro_timestamp, self.now)
+        LOGGER.debug('Pomodoro %s %s, %s', self.title, self.pomodoro.ts, self.now)
 
         self.menu[MENU_RELOAD].title = u'⏰Last pomodoro [{0}] was {1} ago'.format(
-            self.last_pomodoro_name,
+            self.pomodoro.name,
             delta
         )
 
@@ -134,7 +137,7 @@ class Hatarake(hatarake.shim.Shim):
             self.disabled_until = None
         if self.disabled_until is None:
             if delta.total_seconds() % self.delay == 0:
-                self.notifier.nag(self.last_pomodoro_name, delta)
+                self.notifier.nag(self.pomodoro.name, delta)
 
     if CONFIG.getboolean('feed', 'nag'):
         @rumps.timer(300)
@@ -146,8 +149,8 @@ class Hatarake(hatarake.shim.Shim):
             try:
                 result = requests.get(calendar_url)
             except IOError:
-                self.last_pomodoro_name = 'Error loading calendar'
-                self.last_pomodoro_timestamp = self.now.replace(microsecond=0)
+                self.pomodoro.name = 'Error loading calendar'
+                self.pomodoro.ts = self.now.replace(microsecond=0)
                 return
 
             cal = Calendar.from_ical(result.text)
@@ -162,8 +165,10 @@ class Hatarake(hatarake.shim.Shim):
                 if entry['DTEND'].dt > recent['DTEND'].dt:
                     recent = entry
 
-            self.last_pomodoro_name = recent['SUMMARY']
-            self.last_pomodoro_timestamp = recent['DTEND'].dt
+            self.pomodoro = Pomodoro(
+                recent['SUMMARY'],
+                recent['DTEND'].dt
+            )
     else:
         @rumps.timer(300)
         @rumps.clicked(MENU_RELOAD)
@@ -172,15 +177,15 @@ class Hatarake(hatarake.shim.Shim):
             token = CONFIG.get('server', 'token')
 
             response = requests.get(api, token=token, params={
-                'orderby':'created',
-                'limit':1,
+                'orderby': 'created',
+                'limit': 1,
             })
             response.raise_for_status()
             result = response.json()['results'].pop()
-            self.last_pomodoro_name = result['title']
-            self.last_pomodoro_timestamp = dateutil.parser.parse(result['end'])
-            print result
-
+            self.pomodoro = Pomodoro(
+                result['title'],
+                dateutil.parser.parse(result['end']).replace(microsecond=0)
+            )
 
     if CONFIG.getboolean('hatarake', 'development', False):
         @rumps.clicked(MENU_DEBUG)
