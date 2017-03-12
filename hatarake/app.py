@@ -150,7 +150,7 @@ class Hatarake(hatarake.shim.Shim):
         # Show an alarm clock if we do not have an active pomodoro
         delta = self.now - self.pomodoro.ts
         if delta.days:
-            self.title = LABEL_OVERDUE.format('{∞}')
+            self.title = LABEL_OVERDUE.format(u'∞')
         else:
             self.title = LABEL_OVERDUE.format(delta)
 
