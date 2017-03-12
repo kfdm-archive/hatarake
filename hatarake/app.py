@@ -23,7 +23,7 @@ LOGGER = logging.getLogger(__name__)
 MENU_RELOAD = u'Reload'
 MENU_DEBUG = u'💻Debug'
 MENU_ISSUE = u'⚠️Issues'
-MENU_REMAINING = u'Remaining'
+MENU_TOMORROW = u'Remaining'
 MENU_PAUSE = u'Pause'
 
 MENU_PAUSE_15M = u'Pause for 15m'
@@ -134,7 +134,7 @@ class Hatarake(hatarake.shim.Shim):
         # Update our menu showing how much time is left today
         remainder = self.now.replace(hour=0, minute=0, second=0) \
             + datetime.timedelta(days=1) - self.now
-        self.label(MENU_REMAINING, LABEL_TOMORROW, remainder)
+        self.label(MENU_TOMORROW, LABEL_TOMORROW, remainder)
 
         # If we have an active Pomodoro, then we can just update our title
         # and be finished
@@ -235,8 +235,8 @@ class Hatarake(hatarake.shim.Shim):
         def issues(self, sender):
             webbrowser.open(hatarake.ISSUES_LINK)
 
-    @rumps.clicked(MENU_REMAINING)
-    def remaining(self, sender):
+    @rumps.clicked(MENU_TOMORROW)
+    def _tomorrow(self, sender):
         pass
 
     @rumps.clicked(MENU_PAUSE, MENU_PAUSE_15M)
