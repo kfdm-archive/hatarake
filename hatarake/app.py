@@ -162,8 +162,9 @@ class Hatarake(hatarake.shim.Shim):
             )
 
         if self.disabled_until:
-            if self.disabled_until < self.now:
+            if self.disabled_until > self.now:
                 return
+            self.notifier.info('Unpaused Alerts')
             self.disabled_until = None
 
         if self.pomodoro.ts < self.now:
