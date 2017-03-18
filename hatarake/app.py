@@ -33,6 +33,7 @@ LABEL_ACTIVE = u'⏳{0}'
 LABEL_REMAINING = u'⏳{0} remaining for {1}'
 LABEL_SINCE = u'⏰Last pomodoro [{0}] was {1} ago'
 LABEL_OVERDUE = u'⏰{0}'
+LABEL_MUTED = u'🔕{0}'
 LABEL_TOMORROW = u'⌛️Time Remaining today: {}'
 
 PRIORITY_VERY_HIGH = datetime.timedelta(minutes=30)
@@ -151,8 +152,12 @@ class Hatarake(hatarake.shim.Shim):
 
         # Show an alarm clock if we do not have an active pomodoro
         delta = self.now - self.pomodoro.ts
-        if delta.days:
+        if delta.days and self.disabled_until:
+            self.title = LABEL_MUTED.format(u'∞')
+        elif delta.days:
             self.title = LABEL_OVERDUE.format(u'∞')
+        elif self.disabled_until:
+            self.title = LABEL_MUTED.format(delta)
         else:
             self.title = LABEL_OVERDUE.format(delta)
 
